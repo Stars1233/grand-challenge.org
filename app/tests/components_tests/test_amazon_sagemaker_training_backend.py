@@ -101,6 +101,7 @@ def test_instance_type_incompatible(memory_limit, requires_gpu_type):
     (
         ("A", "job", "algorithms"),
         ("E", "evaluation", "evaluation"),
+        ("B", "batchjob", "evaluation"),
     ),
 )
 def test_get_job_params_match(key, model_name, app_label, settings):
@@ -234,7 +235,9 @@ def test_invocation_json(settings):
                 "RemoteDebugConfig": {"EnableRemoteDebug": False},
             },
         )
-        executor.provision(input_civs=[], input_prefixes={})
+        executor.provision(
+            task_specs=[executor.build_inference_task_spec(input_civs=[])]
+        )
         executor.execute()  # Required to validate expected_params in the stubber
 
     with io.BytesIO() as fileobj:
