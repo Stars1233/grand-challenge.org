@@ -652,15 +652,16 @@ class AmazonSageMakerTrainingExecutor(AmazonSageMakerBaseExecutor):
             "Out of Memory. Please use a larger instance",
         ):
             try:
-                users_process_exit_code = (
-                    self._get_inference_result().return_code
-                )
-            except UncleanExit:
-                users_process_exit_code = None
-
-            if users_process_exit_code not in (-9, 1, 137):
-                # Requires investigation
-                logger.error(f"SageMaker OOM {users_process_exit_code=}")
+                for inference_result in self.inference_results:
+                    if inference_result.return_code not in (-9, 1, 137):
+                        # Requires investigation
+                        logger.error(
+                            f"SageMaker OOM "
+                            f"{inference_result.return_code=} "
+                            f"for {inference_result.pk}"
+                        )
+            except UncleanExit as error:
+                logger.error(error, exc_info=True)
 
             raise ComponentException(SystemErrorMessages.MEMORY_LIMIT_EXCEEDED)
         else:
