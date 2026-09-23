@@ -45,6 +45,7 @@ from grandchallenge.components.models import (  # noqa: F401
     ComponentJob,
     ComponentJobManager,
     ImportStatusChoices,
+    OutputSubtask,
     Tarball,
 )
 from grandchallenge.components.schemas import GPUTypeChoices
@@ -1273,6 +1274,16 @@ class Job(CIVForObjectMixin, ComponentJob):
     @property
     def output_interfaces(self):
         return self.algorithm_interface.outputs.all()
+
+    @property
+    def output_subtasks(self):
+        return [
+            OutputSubtask(
+                task_pk=None,
+                outputs=self.outputs,
+                output_interfaces=self.output_interfaces,
+            )
+        ]
 
     @cached_property
     def inputs_complete(self):

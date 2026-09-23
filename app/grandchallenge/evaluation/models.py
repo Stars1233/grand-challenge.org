@@ -37,6 +37,7 @@ from grandchallenge.components.models import (
     ComponentJob,
     ComponentJobManager,
     ImportStatusChoices,
+    OutputSubtask,
     Tarball,
 )
 from grandchallenge.components.schemas import (
@@ -1963,6 +1964,17 @@ class BatchJob(ComponentJob):
         # TODO: add BatchJobUtilization model
         pass
 
+    @property
+    def output_subtasks(self):
+        return [
+            OutputSubtask(
+                task_pk=str(task.pk),
+                outputs=task.outputs,
+                output_interfaces=task.output_interfaces,
+            )
+            for task in self.tasks.all()
+        ]
+
 
 class BatchJobUserObjectPermission(UserObjectPermissionBase):
     allowed_permissions = frozenset()
@@ -2022,6 +2034,10 @@ class BatchJobTask(UUIDModel):
 
     class Meta(UUIDModel.Meta):
         ordering = ("created",)
+
+    @property
+    def output_interfaces(self):
+        return self.algorithm_interface.outputs.all()
 
 
 class EvaluationManager(ComponentJobManager):
@@ -2470,6 +2486,16 @@ class Evaluation(CIVForObjectMixin, ComponentJob):
     @property
     def output_interfaces(self):
         return self.submission.phase.evaluation_outputs
+
+    @property
+    def output_subtasks(self):
+        return [
+            OutputSubtask(
+                task_pk=None,
+                outputs=self.outputs,
+                output_interfaces=self.output_interfaces,
+            )
+        ]
 
     @property
     def additional_outputs(self):
